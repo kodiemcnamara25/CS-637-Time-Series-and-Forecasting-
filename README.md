@@ -2,9 +2,9 @@
 ## CS 637 Time Series and Forecasting Fall 2021
 
 ## Important Course Contents
-[Course Syllabus](CS637 Course Syllabus - Fall 2021.html)  
-[Getting Started with R](Getting Started with R.html)  
-[Semester Project Guidelines](CS637 Semester Project - Fall 2021.html)  
+[Course Syllabus](./CS637 Course Syllabus - Fall 2021.html)  
+[Getting Started with R](./Getting Started with R.html)  
+[Semester Project Guidelines](./CS637 Semester Project - Fall 2021.html)  
 
 
 ## Join our Zoom Lectures
