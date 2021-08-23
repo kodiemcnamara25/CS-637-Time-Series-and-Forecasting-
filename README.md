@@ -1,10 +1,9 @@
-# CS-637-Time-Series-and-Forecasting-
-## CS 637 Time Series and Forecasting Fall 2021
+# CS 637 Time Series and Forecasting Fall 2021
 
 ## Important Course Contents
-[Course Syllabus](./CS637 Course Syllabus - Fall 2021.html)  
-[Getting Started with R](./Getting Started with R.html)  
-[Semester Project Guidelines](./CS637 Semester Project - Fall 2021.html)  
+[Course Syllabus](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/CS637%20Course%20Syllabus%20-%20Fall%202021.pdf)  
+[Getting Started with R](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/Getting%20Started%20with%20R.pdf)  
+[Semester Project Guidelines](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/CS637%20Semester%20Project%20-%20Fall%202021.pdf)  
 
 
 ## Join our Zoom Lectures
