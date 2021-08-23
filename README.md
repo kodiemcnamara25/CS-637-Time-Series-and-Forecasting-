@@ -1,5 +1,11 @@
 # CS-637-Time-Series-and-Forecasting-
-CS 637 Time Series and Forecasting Fall 2021
+## CS 637 Time Series and Forecasting Fall 2021
+
+## Important Course Contents
+[Course Syllabus](CS637 Course Syllabus - Fall 2021.pdf)
+[Getting Started with R](Getting Started with R.pdf)
+[Semester Project Guidelines](CS637 Semester Project - Fall 2021.pdf)
+
 
 ## Join our Zoom Lectures
 
