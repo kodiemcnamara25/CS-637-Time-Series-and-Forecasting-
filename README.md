@@ -4,7 +4,7 @@
 [Course Syllabus](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/CS637%20Course%20Syllabus%20-%20Fall%202021.pdf)  
 [Getting Started with R](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/Getting%20Started%20with%20R.pdf)  
 [Semester Project Guidelines](https://github.com/kodiemcnamara25/CS-637-Time-Series-and-Forecasting-/blob/main/CS637%20Semester%20Project%20-%20Fall%202021.pdf)  
-
+[Zoom Lecture Recordings](https://drive.google.com/drive/folders/1iYy-ICm9ZqiRRhqbn6OlYz6Crhqs3T4L?usp=sharing)
 
 ## Join our Zoom Lectures
 
