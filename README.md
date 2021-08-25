@@ -16,5 +16,8 @@ Passcode: cs637
 ### Part II (7:10PM-7:45PM)  
 https://zoom.us/j/93360142851?pwd=cjVXdmJUMGJpb01nUVJHM2grY2xEZz09  
 Meeting ID: 933 6014 2851  
-Passcode: cs637  
+Passcode: cs637 
+
+### Other Statistics and Machine Learning Texts ###
+Check out the repository [here](https://github.com/kodiemcnamara25/Mathematical-and-Statistical-Learning-Textbooks)
 
