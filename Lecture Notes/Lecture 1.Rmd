@@ -1,0 +1,195 @@
+---
+title: "Lecture 1"
+author: "Kodie McNamara"
+date: "August 30, 2021"
+output: html_document
+---
+
+## Beginning with R
+We can define different computations in different ways, utilizing different __control structures__. Control structures are defined as:  
+* for-loops
+* while-loops
+* functions
+* if-else statements
+* many others...
+
+We can define a factorial function as follows:
+```{r}
+Fact <- function(n){
+  output = 1
+  for(i in 1:n){
+    output = output * i
+  }
+  return(output)
+}
+```
+
+```{r}
+Fact(5)
+```
+
+
+Likewise, there is a factorial function defined in the `base` R package. For functions defined in `base`, we do not need to install or load their libraries. They come with the default R when you installed the program.
+```{r}
+factorial(5)
+```
+## Plots, Trends, and Seasonal Variation
+
+### Air Passenger Bookings
+There are a handful of datasets that are native to R and we can load in easily utilizing the `data()` function. In particular, we will load in the "Airpassengers" data
+```{r}
+data("AirPassengers")
+AP = AirPassengers
+AP
+```
+
+We can determine the class of an object by calling the `class` method
+```{r}
+class(AP)
+```
+
+Here, we see AP is defined as "ts" for "time series". We can call a handful of other methods for these types of objects
+```{r}
+start(AP)
+end(AP)
+frequency(AP)
+```
+
+We can also ouput a summary of the dataset
+```{r}
+summary(AP)
+```
+
+There is a generic call for plotting time series (and all other sorts of data) in base R utilizing the `plot()` function. There are a handful of arguments that can go into this function, as well.
+```{r}
+plot(AP, ylab = "Passengers (1000's)")
+```
+
+Return to the Lecture 1 Notes for me information on this plot.
+
+
+We can remove some seasonal variation by aggregating by various time increments. Here, we can call the `agrgegate()` function to aggregate the time series by year, and determine the trend from there.
+```{r}
+plot(aggregate(AP))
+```
+
+Likewise, we can determine each cycle's characteristics by calling the `cycle()` function and summarising using a boxplot
+```{r}
+boxplot(AP ~ cycle(AP))
+```
+
+### Uneployment: Maine
+Monthly unemployment data are available in a file online that is read into R in the code below. We read in the csv from file and manipulate from there
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+Maine.month = read.csv(file = "data/Maine.csv")
+class(Maine.month)
+```
+
+Note this data file is not of type `ts` (time series) but is rather read in as a dataframe. We create a time series object with the following command
+```{r}
+Maine.month.ts = ts(Maine.month, start = c(1996, 1), frequency = 12)
+```
+
+We can aggregate by year, as well
+```{r}
+Maine.annual.ts = aggregate(Maine.month.ts)/12
+```
+
+Next, we can plot both time series, both by month and by year.
+```{r}
+layout(1:2)
+plot(Maine.month.ts, ylab = "unemployed (%)")
+plot(Maine.annual.ts, ylab = "unemployed (%)")
+```
+We can compute some of the specific percentages leveraging the `window()` function as described below. We can gain a sense of seasonal variation comparing the months computations to the overall means throughout the year
+```{r}
+Maine.Feb <- window(Maine.month.ts, start = c(1996,2), freq = TRUE)
+Maine.Aug <- window(Maine.month.ts, start = c(1996,8), freq = TRUE)
+Feb.ratio <- mean(Maine.Feb) / mean(Maine.month.ts)
+Aug.ratio <- mean(Maine.Aug) / mean(Maine.month.ts)
+```
+
+Below, we print those ratios
+```{r}
+print(paste0("February Ratio: ", round(Feb.ratio, 4)))
+print(paste0("August Ratio: ", round(Aug.ratio, 4)))
+```
+
+
+### Global Temperatures
+Below we read in the global temperatures file and build the time-series object for both the complete set of data points and aggregated on the annual basis. We need to manipulate the data a bit, too, because each row is a year and each column is the month. Thus, we aggregate the data into one column.
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+Global_file = read.csv(file = "data/Global.csv", header = F)
+
+Global = data.frame()
+for(row in 1:nrow(Global_file)){
+  for(column in 1:ncol(Global_file)){
+    Global = rbind.data.frame(Global, Global_file[row,column])
+  }
+}
+
+names(Global) = "Temperate in C"
+```
+
+
+Next, we plot both all the data points and the yearly aggregate
+```{r}
+Global.ts <- ts(Global, st = c(1856, 1), end = c(2005, 12), fr = 12)
+Global.annual <- aggregate(Global.ts, FUN = mean)
+layout(1:2)
+plot(Global.ts)
+plot(Global.annual)
+```
+
+Next, we can narrow down our time series from 1970 onward and get a sense of a more recent trend. Here, we can create a line of best fit using `abline()`
+```{r}
+New.series <- window(Global.ts, start=c(1970, 1), end=c(2005, 12))
+New.time <- time(New.series)
+plot(New.series)
+abline(reg=lm(New.series ~ New.time))
+```
+
+## Decomposition in R
+
+In R, the function `decompose()` estimates trends and seasonal effects using a moving average method. Nesting the function within plot (e.g., using `plot(stl())`) produces a single figure showing the original series $x_{t}$ and the decomposed series $m_{t}$, $s_{t}$, and $z_{t}$.
+
+We read in a new data set, electricity
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+Elec = read.csv("data/elec.csv") 
+Elec.ts <- ts(Elec, start = 1958, freq = 12)
+```
+
+Next, we visualize its additive decomposition
+```{r}
+plot(decompose(Elec.ts))
+```
+
+Next, its multiplicative decomposition
+```{r}
+Elec.decom <- decompose(Elec.ts, type = "mult")
+plot(Elec.decom)
+```
+
+Finally, the trend multiplied by the seasonal, which does not account for randon noise
+```{r}
+Trend <- Elec.decom$trend
+Seasonal <- Elec.decom$seasonal
+ts.plot(cbind(Trend, Trend * Seasonal), lty = 1:2)
+```
+
+
+
+
+
