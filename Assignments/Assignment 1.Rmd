@@ -1,0 +1,46 @@
+---
+title: "Assignment 1"
+date: "August 30, 2021"
+output: html_document
+---
+#### Due Date: September 13, 2021
+
+### Instructions
+Please complete each problem below to the best of your ability. Where plain text is required, you can type directly into the .RMD file. Where code and output is required, be sure to include all code in the code chunks provided. The assignment must be submitted, via email, as both the .RMD file and the knitted file (whether .html or .pdf, whichever is best for yourself)
+
+## Problem 0
+Run through the "Decomposition in R" section from Lecture 1.Rmd  
+
+Copy and paste each code block from that lecture below. Run each code chunk and ensure they run correctly. Include the output here (the output will be automatically produced when you knit this document)
+
+
+###############################################
+####### Copy and Paste Code Chunks Here #######
+###############################################
+
+
+
+### Problem 0A
+Given the *additive* and the *multiplicative* decomposition models, and what we know about each (reference both the textbook and notes for more infor between the two), which decomposition model seems to be the best fit for the data?
+
+######### Your answer as plain text below #########
+
+
+
+####################################################
+
+
+## Problem 1
+Complete Chapter 1, Exercise 1 from the textbook. You can find both the `beer.csv` and the `choc.csv` files in the `Lecture Notes/data` folders.
+
+#### Part 1A
+```{r}
+
+```
+
+
+
+#### Part 1B
+```{r}
+
+```

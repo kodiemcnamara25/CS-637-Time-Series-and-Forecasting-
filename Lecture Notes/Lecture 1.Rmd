@@ -55,7 +55,7 @@ end(AP)
 frequency(AP)
 ```
 
-We can also ouput a summary of the dataset
+We can also output a summary of the dataset
 ```{r}
 summary(AP)
 ```
@@ -126,7 +126,7 @@ Below we read in the global temperatures file and build the time-series object f
 # Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
 # Your directory must be set to tell R where to find the data file for Maine monthly unemployment
 
-#setwd()
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
 Global_file = read.csv(file = "data/Global.csv", header = F)
 
 Global = data.frame()
