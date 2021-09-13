@@ -1,0 +1,158 @@
+---
+title: "Lecture 2"
+author: "Kodie McNamara"
+date: "September 13, 2021"
+output: html_document
+---
+
+### Covariance 
+First, we read in the Herald dataset. As always, make sure your directory is set.
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+Herald = read.csv(file = "data/Herald.csv")
+```
+
+Next, we compute the covariance by hand
+```{r}
+x <- Herald$CO
+y <- Herald$Benzoa
+n <- length(x)
+sum((x - mean(x))*(y - mean(y))) / (n - 1)
+```
+
+If instead, we did not use the sample correction of division, we would divide by just $n$. This is equivalent to the mean of the computation above
+```{r}
+mean((x - mean(x))*(y - mean(y)))
+```
+
+Clearly, the two estimates differ slightly.
+
+How about if we compare this to the value produced with the covariance function? Which computation does this use?
+```{r}
+cov(x,y)
+```
+This uses the n-1 divisor!
+
+### Correlation
+We can compute the correlation as the quotient of the covariance and product of the standard deviations
+```{r}
+cov(x,y) / (sd(x)*sd(y))
+```
+
+Or, we can utilize the correlation function in R
+```{r}
+cor(x,y)
+```
+
+#### Autocovariance and Autocorrelation
+First, we read in the wave data
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+wave = read.csv(file = "data/wave.csv")
+```
+
+Next, we plot the time series
+```{r}
+plot(ts(wave))
+```
+
+```{r}
+plot(ts(wave[1:60,]))
+```
+
+We can use the `acf()` function to determine the Autocorrelation of the data.
+In particular, we can access the `acf` vector within the object, where the k+1 object is the kth autocorrelation
+```{r}
+acf(wave, plot = F)$acf[2]
+```
+
+We can uncover linear and non-linear relationships by examining the scatter plot of the sequence of points
+```{r}
+plot(wave[1:396,],wave[2:397,], xlab = "x_t", ylab = "x_t+1")
+```
+
+We also can compute the covariance directly within the acf function
+```{r}
+acf(wave, type = c("covariance"), plot = F)$acf[2]
+```
+
+Next, we can compute the correlogram produced by the `acf()` function, when we set the "plot" argument to TRUE.
+```{r}
+acf(wave, plot = TRUE)
+```
+
+### Air Passenger Data
+
+First, we read in the data and plot the random element of the decomposed time series
+```{r}
+data(AirPassengers)
+AP <- AirPassengers
+AP.decom <- decompose(AP, "multiplicative")
+plot(ts(AP.decom$random[7:138]))
+```
+
+
+Next, we can examine the auto correlation of this random element, after removing the trend and seasonal variation
+```{r}
+acf(AP.decom$random[7:138])
+```
+
+
+How are the standard deviations effected by the decomposed elements of the data?
+
+The overall standard deviation of the data
+```{r}
+sd(AP[7:138])
+```
+
+The standard deviation with the trend removed
+```{r}
+sd(AP[7:138] - AP.decom$trend[7:138])
+```
+The standard deviation of the randomness in the data
+```{r}
+sd(AP.decom$random[7:138])
+```
+
+The reduction in the standard deviation shows that the seasonal adjustment has been very effective.
+
+
+### Font Reservoir Series
+First, we read in our data and plot the time series
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd()
+adflow = read.csv(file = "data/Fontdsdt.csv")
+plot(ts(adflow), ylab = 'adflow')
+```
+
+Next, we can examine the autocorrelation
+```{r}
+acf(adflow, xlab = 'lag (months)', main="")
+```
+
+There is a statistically significant correlation at lag 1. The physical interpretation is that the inflow next month is more likely than not to be above average if the inflow this month is above average. Similarly, if the inflow this month is below average it is more likely than not that next month’s inflow will be below average.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
