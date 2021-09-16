@@ -11,7 +11,7 @@ First, we read in the Herald dataset. As always, make sure your directory is set
 # Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
 # Your directory must be set to tell R where to find the data file for Maine monthly unemployment
 
-#setwd()
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
 Herald = read.csv(file = "data/Herald.csv")
 ```
 
@@ -20,6 +20,7 @@ Next, we compute the covariance by hand
 x <- Herald$CO
 y <- Herald$Benzoa
 n <- length(x)
+n <- nrow(Herald)
 sum((x - mean(x))*(y - mean(y))) / (n - 1)
 ```
 
@@ -74,7 +75,7 @@ acf(wave, plot = F)$acf[2]
 
 We can uncover linear and non-linear relationships by examining the scatter plot of the sequence of points
 ```{r}
-plot(wave[1:396,],wave[2:397,], xlab = "x_t", ylab = "x_t+1")
+plot(x = wave[1:396,], y = wave[2:397,], xlab = "x_t", ylab = "x_t+1")
 ```
 
 We also can compute the covariance directly within the acf function
