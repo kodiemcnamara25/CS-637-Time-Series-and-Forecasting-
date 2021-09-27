@@ -1,0 +1,35 @@
+---
+title: "Assignment 3"
+date: "September 27, 2021"
+output: html_document
+---
+#### Due Date: October 18, 2021
+
+### Instructions
+Please complete each problem below to the best of your ability. Where plain text is required, you can type directly into the .RMD file. Where code and output is required, be sure to include all code in the code chunks provided. The assignment must be submitted, via email, as both the .RMD file and the knitted file (whether .html or .pdf, whichever is best for yourself)
+
+## Problem 1
+Complete Chapter 3, Exercise 1 from the textbook.
+
+#### Part 1A
+```{r}
+
+```
+
+
+
+#### Part 1B
+```{r}
+
+```
+
+
+## Problem 2
+Complete Chapter 3, Exercise 6 from the textbook.
+
+## Problem 3
+Complete Chapter 3, Exercise 7 from the textbook.
+
+
+
+
