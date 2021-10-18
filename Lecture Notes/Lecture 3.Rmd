@@ -24,7 +24,7 @@ ts.plot(App.ts, Act.ts, lty = c(1,3))
 ```
 
 #### Auto-Correlation, Cross Covariance and Cross Correlation
-The ts.union function binds time series with a common frequency, padding with ‘NA’s to the union of their time coverages. If ts.union is used within the acf command, R returns the correlograms for the two variables and the cross-correlograms in a single figur
+The ts.union function binds time series with a common frequency, padding with ‘NA’s to the union of their time coverages. If ts.union is used within the acf command, R returns the correlograms for the two variables and the cross-correlograms in a single figure
 ```{r}
 acf(ts.union(App.ts, Act.ts))
 ```
@@ -50,10 +50,11 @@ We show a typical Bass curve by fitting sales per unit time to yearly sales of V
 ```{r}
 T79 <- 1:10
 Tdelt <- (1:100) / 10
-Sales <- c(840,1470,2110,4000, 7590, 10950, 10530, 9470, 7790, 5890)
+Sales <- c(840, 1470, 2110, 4000, 7590, 10950, 10530, 9470, 7790, 5890)
 Cusales <- cumsum(Sales)
 Bass.nls <- nls(Sales ~ M * ( ((P+Q)^2 / P) * exp(-(P+Q) * T79) ) /
-                  (1+(Q/P)*exp(-(P+Q)*T79))^2, start = list(M=60630, P=0.03, Q=0.38))
+                  (1+(Q/P)*exp(-(P+Q)*T79))^2, 
+                start = list(M=60630, P=0.03, Q=0.38))
 summary(Bass.nls)
 ```
 
@@ -67,11 +68,11 @@ q <- Bcoef[3]
 ngete <- exp(-(p+q) * Tdelt)
 Bpdf <- m * ( (p+q)^2 / p ) * ngete / (1 + (q/p) * ngete)^2
 plot(Tdelt, Bpdf, xlab = "Year from 1979",
-ylab = "Sales per year", type='l')
+     ylab = "Sales per year", type='l')
 points(T79, Sales)
 Bcdf <- m * (1 - ngete)/(1 + (q/p)*ngete)
 plot(Tdelt, Bcdf, xlab = "Year from 1979",
-ylab = "Cumulative sales", type='l')
+     ylab = "Cumulative sales", type='l')
 points(T79, Cusales)
 ```
 

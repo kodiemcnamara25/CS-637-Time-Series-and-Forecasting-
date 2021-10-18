@@ -1,0 +1,135 @@
+---
+title: "Lecture 4"
+author: "Kodie McNamara"
+date: "October 18, 2021"
+output: html_document
+---
+
+### Simulation in R
+A fitted time series model can be used to simulate data. Time series simulated using a model are sometimes called synthetic series to distinguish them from an observed historical series
+
+
+In R, simulation is usually straightforward, and most standard statistical distributions are simulated
+using a function that has an abbreviated name for the distribution prefixed with an ‘r’ (for ‘random’).1 For example, `rnorm(100)` is used to simulate 100 independent standard normal variables, which is equivalent to simulating a Gaussian white noise series of length 100
+
+
+The function set.seed is used to provide a starting point (or seed) in the simulations, thus ensuring that the simulations can be reproduced. If this function is left out, a different set of simulated data are obtained, although the underlying statistical properties remain unchanged
+```{r}
+set.seed(1)
+w <- rnorm(100)
+plot(w, type = "l")
+```
+
+
+Here we examine auto correlations of simulated data
+```{r}
+set.seed(2)
+acf(rnorm(100))
+```
+
+
+### Random Walks
+The following commands can be used to simulate random walk data for `x`
+```{r}
+x <- rnorm(1000)
+w <- rnorm(1000)
+for (t in 2:1000){
+  x[t] <- x[t - 1] + w[t]
+}
+plot(x, type = "l")
+```
+
+Next, we compute the autocorrelation of the data.
+
+The correlogram for the simulated random walk. A gradual decay from a high serial correlation is a notable feature of a random walk series.
+```{r}
+acf(x)
+```
+
+
+### Exchange Rate Series
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+Z = read.csv(file = "data/Pounds_NZ.csv")
+Z.ts <- ts(Z, st = 1991, fr = 4)
+```
+
+
+Here we create acf plots of the first order differences from the data.
+
+The significant value at lag 1 indicates that an extension of the random walk model is needed for this series.
+```{r}
+acf(diff(Z.ts))
+```
+
+An additional term can be added to the random walk model using the Holt-Winters procedure, allowing the parameter β to be non-zero but still forcing the seasonal term γ to be zero
+```{r}
+Z.hw <- HoltWinters(Z.ts, alpha = 1, gamma = 0)
+acf(resid(Z.hw))
+```
+
+#### Hewlett-Packard Company
+
+The random walk model can be adapted to allow for this by including a drift parameter $\delta$.
+
+$$
+x_{t} = x_{t-1} + \delta + w_{t}
+$$
+
+
+The lag 1 differences are calculated using diff() and plotted. The correlogram of the differences is plotted, and they appear to be well modeled as white noise. The mean of the differences is 0.0399, and this is our estimate of the drift parameter. The standard deviation of the 671 differences is 0.460, and an approximate 95% confidence interval for the drift parameter is [0.004, 0.075]. Since this interval does not include 0, we have evidence of a positive drift over this period
+
+```{r}
+HP.dat <- read.csv(file = "data/HP.csv")
+plot(as.ts(HP.dat$Price))
+DP <- diff(HP.dat$Price)
+plot(as.ts(DP))
+acf(DP)
+mean(DP) + c(-2, 2) * sd(DP)/sqrt(length(DP))
+```
+
+
+### Autoregressive Simulation
+An AR(1) process can be simulated in R as follows:
+```{r}
+set.seed(1)
+x <- rnorm(100)
+set.seed(1)
+w <- rnorm(100)
+for (t in 2:100){
+  x[t] <- 0.7 * x[t - 1] + w[t]
+}
+plot(x, type = "l")
+acf(x)
+pacf(x)
+```
+
+An AR(p) model can be fitted to data in R using the ar function. In the code below, the autoregressive model `x.ar` is fitted to the simulated series of the last section
+```{r}
+x.ar <- ar(x, method = "mle")
+x.ar$order
+```
+
+Estimate of alpha parameter
+```{r}
+x.ar$ar
+```
+
+```{r}
+x.ar$ar + c(-2, 2) * sqrt(x.ar$asy.var)
+```
+
+
+### Exchange Rates 
+Below we create an AR model for the exchange rate data
+```{r}
+Z.ar <- ar(Z.ts)
+paste0("Mean: ", mean(Z.ts))
+paste0("Order: ", Z.ar$order)
+paste0("Alpha: ", Z.ar$ar)
+paste0("95% CI: ", Z.ar$ar + c(-2, 2) * sqrt(Z.ar$asy.var))
+acf(Z.ar$res[-1])
+```
