@@ -31,6 +31,7 @@ acf(rnorm(100))
 ### Random Walks
 The following commands can be used to simulate random walk data for `x`
 ```{r}
+set.seed(2021)
 x <- rnorm(1000)
 w <- rnorm(1000)
 for (t in 2:1000){

@@ -1,0 +1,270 @@
+---
+title: "Lecture 5"
+author: "Kodie McNamara"
+date: "November 1, 2021"
+output: html_document
+---
+
+### Simulation in R
+The error series ${z_t}$ tend to be autocorrelated in Time Series regression.
+In the code below a time series with an increasing straight-line trend (50 + 3t) with autocorrelated errors is simulated and
+plotted
+```{r}
+set.seed(1)
+z <- rnorm(100, sd = 20)
+w <- z
+for (t in 2:100){
+  z[t] <- 0.8 * z[t - 1] + w[t]
+} 
+Time <- 1:100
+x <- 50 + 3 * Time + z
+plot(x, xlab = "time", type = "l")
+```
+Linear models are usually fitted by minimising the sum of squared errors
+$$
+\sum{z_t^2} = \sum\left(x_t - \left[\alpha_0 + \alpha_1u_{1,t} + ... + \alpha_mu_{m,t}\right]   \right)^2
+$$
+
+which is achieved in R using the function `lm`
+```{r}
+x.lm <- lm(x ~ Time)
+coef(x.lm)
+```
+
+The standard errors are extracted using the square root of the diagonal elements obtained from `vcov`, although these standard errors are likely to be underestimated because of autocorrelation in the residuals
+```{r}
+sqrt(diag(vcov(x.lm)))
+```
+
+After fitting a regression model, we should consider various diagnostic plots. In the case of time series regression, an important diagnostic plot is the correlogram of the residuals:
+```{r}
+acf(resid(x.lm))
+```
+
+Next, we fit a model for the global temp data.
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+Global_file = read.csv(file = "data/Global.csv", header = F)
+
+Global = data.frame()
+for(row in 1:nrow(Global_file)){
+  for(column in 1:ncol(Global_file)){
+    Global = rbind.data.frame(Global, Global_file[row,column])
+  }
+}
+
+names(Global) = "Temperate in C"
+```
+
+
+The following regression model is fitted to the global temperature, and approximate 95% confidence intervals are given for the parameters using `confint`. The explanatory variable is the time, so the function time is used to extract the ‘times’ from the ts temperature object
+
+```{r}
+Global.ts <- ts(Global, st = c(1856, 1), end = c(2005, 12), fr = 12)
+temp <- window(Global.ts, start = 1970)
+temp.lm <- lm(temp ~ time(temp))
+coef(temp.lm)
+```
+
+```{r}
+confint(temp.lm)
+```
+
+```{r}
+acf(resid(lm(temp ~ time(temp))))
+```
+
+
+### Generalized Least Squares
+The following example illustrates how to fit a regression model to the simulated series using GLS
+
+A lag 1 autocorrelation of 0.8 is used because this value was used to simulate the data. . For historical series, the lag 1 autocorrelation would need to be estimated from the correlogram of the residuals of a fitted linear model; i.e., a linear model should first be fitted by ordinary least squares (OLS) and the lag 1 autocorrelation read off from a correlogram plot of the residuals of the fitted model.
+
+```{r}
+library(nlme)
+x.gls <- gls(x ~ Time, cor = corAR1(0.8))
+coef(x.gls)
+```
+
+```{r}
+sqrt(diag(vcov(x.gls)))
+```
+
+
+To calculate an approximate 95% confidence interval for the trend in the global temperature series (1970–2005), GLS is used to estimate the standard error accounting for the autocorrelation in the residual series.
+```{r}
+temp.gls <- gls(temp ~ time(temp), cor = corAR1(0.7))
+confint(temp.gls)
+```
+
+Although the confidence intervals above are now wider than they were in OLS model, zero is not contained in the intervals, which implies that the estimates are statistically significant, and, in particular, that the trend is significant. Thus, there is statistical evidence of an increasing trend in global temperatures over the period 1970–2005, so that, if current conditions persist, temperatures may be expected to continue to rise in the future.
+
+
+### Seasonal model for the temperature series
+The parameters of a straight-line trend with additive seasonal indices can be estimated for the temperature series (1970–2005) as follows
+```{r}
+Seas <- cycle(temp)
+Time <- time(temp)
+temp.lm <- lm(temp ~ 0 + Time + factor(Seas))
+coef(temp.lm)
+```
+
+Using the above fitted model, a two-year-ahead future prediction for the temperature series is obtained as follows:
+```{r}
+new.t <- seq(2006, len = 2 * 12, by = 1/12)
+alpha <- coef(temp.lm)[1]
+beta <- rep(coef(temp.lm)[2:13], 2)
+(alpha * new.t + beta)[1:4]
+```
+
+Alternatively, the predict function can be used to make forecasts provided the new data are correctly labeled within a `data.frame`
+```{r}
+new.dat <- data.frame(Time = new.t, Seas = rep(1:12, 2))
+predict(temp.lm, new.dat)[1:24]
+```
+
+
+### Harmonic Seasonal Models
+Suppose data are taken at monthly intervals. Then the second plot given below might be a more realistic underlying seasonal pattern than the first plot, as it perturbs the standard sine wave by adding another two harmonic terms of frequencies 2/12 and 4/12
+```{r}
+TIME <- seq(1, 12, len = 1000)
+plot(TIME, sin(2 * pi * TIME/12), type = "l")
+plot(TIME, sin(2 * pi * TIME/12) + 0.2 * sin(2 * pi * 2 * TIME/12) + 0.1 * sin(2 * pi * 4 * TIME/12) + 0.1 * cos(2 * pi * 4 * TIME/12),
+     type = "l")
+```
+
+Using the code below, a series of length 10 years is simulated
+```{r}
+set.seed(1)
+TIME <- 1:(10 * 12)
+w <- rnorm(10 * 12, sd = 0.5)
+Trend <- 0.1 + 0.005 * TIME + 0.001 * TIME^2
+Seasonal <- sin(2*pi*TIME/12) + 0.2*sin(2*pi*2*TIME/12) + 0.1*sin(2*pi*4*TIME/12) + 0.1*cos(2*pi*4*TIME/12)
+x <- Trend + Seasonal + w
+plot(x, type = "l")
+```
+It would seem reasonable to place the harmonic variables in matrices, which can be achieved as follows:
+```{r}
+SIN <- matrix(nr = length(TIME), nc = 6)
+COS <- matrix(nr = length(TIME), nc = 6)
+for (i in 1:6) {
+  COS[, i] <- cos(2 * pi * i * TIME/12)
+  SIN[, i] <- sin(2 * pi * i * TIME/12)
+}
+```
+
+The following example illustrates the procedure applied to the simulated series of the last section
+```{r}
+x.lm1 <- lm(x ~ TIME + I(TIME^2) + COS[, 1] + SIN[, 1] +
+              COS[, 2] + SIN[, 2] + COS[, 3] + SIN[, 3] + COS[, 4] +
+              SIN[, 4] + COS[, 5] + SIN[, 5] + COS[, 6] + SIN[, 6])
+```
+
+An approximate t-ratio of magnitude 2 is a common choice and corresponds to an approximate 5% significance level. This t-ratio can be obtained by dividing the estimated coefficient by the standard error of the estimate
+```{r}
+coef(x.lm1)/sqrt(diag(vcov(x.lm1)))
+```
+
+```{r}
+x.lm2 <- lm(x ~ I(TIME^2) + SIN[, 1] + SIN[, 2])
+coef(x.lm2)/sqrt(diag(vcov(x.lm2)))
+```
+
+As can be seen in the output from the last command, the coefficients are all significant. The estimated coefficients of the best-fitting model are given by
+```{r}
+coef(x.lm2)
+```
+
+The AIC can be used to compare the two fitted models:
+```{r}
+AIC(x.lm1)
+```
+
+
+```{r}
+AIC(x.lm2)
+```
+As expected, the last model has the smallest AIC and therefore provides the best fit to the data
+
+
+In the code below, a harmonic model with a quadratic trend is fitted to the temperature series 
+```{r}
+SIN <- matrix(nr = length(temp), nc = 6)
+COS <- matrix(nr = length(temp), nc = 6)
+for (i in 1:6) {
+  COS[, i] <- cos(2 * pi * i * time(temp))
+  SIN[, i] <- sin(2 * pi * i * time(temp))
+}
+TIME <- (time(temp) - mean(time(temp)))/sd(time(temp))
+```
+
+
+```{r}
+temp.lm1 <- lm(temp ~ TIME + I(TIME^2) +
+                 COS[,1] + SIN[,1] + COS[,2] + SIN[,2] +
+                 COS[,3] + SIN[,3] + COS[,4] + SIN[,4] +
+                 COS[,5] + SIN[,5] + COS[,6] + SIN[,6])
+coef(temp.lm1)/sqrt(diag(vcov(temp.lm1)))
+```
+
+
+```{r}
+temp.lm2 <- lm(temp ~ TIME + SIN[, 1] + SIN[, 2])
+coef(temp.lm2)
+```
+
+```{r}
+AIC(temp.lm)
+```
+
+```{r}
+AIC(temp.lm1)
+```
+
+```{r}
+AIC(temp.lm2)
+```
+
+To check the adequacy of the fitted model, it is appropriate to create a time plot and correlogram of the residuals because the residuals form a time series. The time plot is used to detect patterns in the series. For example, if a higher-ordered polynomial is required, this would show up as a curve in the time plot. The purpose of the correlogram is to determine whether there is autocorrelation in the series, which would require a further model.
+```{r}
+plot(time(temp), resid(temp.lm2), type = "l")
+abline(0, 0, col = "red")
+acf(resid(temp.lm2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
