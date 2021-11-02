@@ -7,8 +7,7 @@ output: html_document
 
 ### Simulation in R
 The error series ${z_t}$ tend to be autocorrelated in Time Series regression.
-In the code below a time series with an increasing straight-line trend (50 + 3t) with autocorrelated errors is simulated and
-plotted
+In the code below a time series with an increasing straight-line trend (50 + 3t) with autocorrelated errors is simulated and plotted
 ```{r}
 set.seed(1)
 z <- rnorm(100, sd = 20)
@@ -84,6 +83,7 @@ The following example illustrates how to fit a regression model to the simulated
 A lag 1 autocorrelation of 0.8 is used because this value was used to simulate the data. . For historical series, the lag 1 autocorrelation would need to be estimated from the correlogram of the residuals of a fitted linear model; i.e., a linear model should first be fitted by ordinary least squares (OLS) and the lag 1 autocorrelation read off from a correlogram plot of the residuals of the fitted model.
 
 ```{r}
+#install.packages("nlme")
 library(nlme)
 x.gls <- gls(x ~ Time, cor = corAR1(0.8))
 coef(x.gls)
@@ -117,7 +117,7 @@ Using the above fitted model, a two-year-ahead future prediction for the tempera
 new.t <- seq(2006, len = 2 * 12, by = 1/12)
 alpha <- coef(temp.lm)[1]
 beta <- rep(coef(temp.lm)[2:13], 2)
-(alpha * new.t + beta)[1:4]
+(alpha * new.t + beta)
 ```
 
 Alternatively, the predict function can be used to make forecasts provided the new data are correctly labeled within a `data.frame`
