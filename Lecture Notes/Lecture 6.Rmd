@@ -1,0 +1,311 @@
+---
+title: "Lecture 6"
+author: "Kodie McNamara"
+date: "November 15, 2021"
+output: html_document
+---
+
+## MA(q) Process Simulation
+The autocorrelation function for an MA(q) process can readily be implemented in R, and a simple version, without any detailed error checks, is given below.
+Take note of each step computed along the way
+```{r}
+rho =  function(k, beta) {
+  q = length(beta) - 1
+  if (k > q){
+    ACF <- 0
+  }
+  else {
+    s1 <- 0
+    s2 <- 0
+    
+    for (i in 1:(q-k+1)){
+      s1 <- s1 + beta[i] * beta[i+k]
+    }
+    
+    for (i in 1:(q+1)){
+      s2 <- s2 + beta[i]^2
+    }
+    
+    ACF <- s1 / s2
+  }
+  return(ACF)
+}
+```
+
+
+Using the code above for the autocorrelation function, correlograms for a range of $MA(q)$ processes can be plotted against lag – the code below provides an
+example for an $MA(3)$ process with parameters $\beta_{1} = 0.7$, $\beta_{2} = 0.5$, and $\beta_{3} = 0.2$
+```{r}
+beta <- c(1, 0.7, 0.5, 0.2)
+rho.k <- rep(1, 10)
+
+for (k in 1:10){
+  rho.k[k] <- rho(k, beta)
+}
+
+plot(0:10, c(1, rho.k), pch = 4, ylab = expression(rho[k]))
+abline(0, 0)
+```
+
+The code below can be used to simulate the $MA(3)$ process and plot the correlogram of the simulated series.
+```{r}
+set.seed(1)
+b <- c(0.8, 0.6, 0.4)
+x <- rnorm(1000)
+w <- x
+for (t in 4:1000) {
+  for (j in 1:3){
+    x[t] <- x[t] + b[j] * w[t - j]
+  }
+}
+plot(x, type = "l")
+acf(x)
+```
+
+
+As expected, the first three autocorrelations are significantly different from 0; other statistically significant correlations are attributable to random sampling variation. Note that in the correlogram plot in 20 (5%) of the sample correlations for lags greater than 3, for which the underlying population correlation is zero, are expected to be statistically significantly different from zero at the 5% level because multiple t-test results are being shown on the plot.
+
+## Model Fitted to Simulated Series
+An $MA(q)$ model can be fitted to data in R using the `arima` function with the order function parameter set to `c(0,0,q)`
+
+MA models cannot be expressed in a multiple regression form, and, in general, the parameters are estimated with a numerical algorithm.
+
+In the following code, a moving average model, x.ma, is fitted to the simulated series of the last section. 
+
+```{r}
+x.ma <- arima(x, order = c(0, 0, 3))
+x.ma
+```
+
+
+
+
+Looking at the parameter estimates (coefficients in the output below), it can be seen that the 95% confidence intervals (approximated by coeff. +- 2 s.e. of coeff.) contain the underlying parameter values (0.8, 0.6, and 0.4) that were used in the simulations.
+
+Furthermore, also as expected, the intercept is not significantly different from its underlying parameter value of zero.
+
+## Fitted MA(q) Model with Exchange Rate Data
+In the code below, an MA(1) model is fitted to the exchange rate series
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+Pounds_NZ = read.csv(file = "data/Pounds_NZ.csv", header = F)
+x.ts <- ts(Pounds_NZ, st = 1991, fr = 4)
+x.ma <- arima(x.ts, order = c(0, 0, 1))
+x.ma
+```
+
+
+```{r}
+acf(x.ma$res[-1])
+```
+This model fit is poor, indicated by the large variance in the residual series and 0 not being captured in the 95% confidence interval for the intercept
+
+## ARMA Simulation
+The ARMA process can be simulated using the R function `arima.sim`. 
+
+An ARMA(p, q) model can be fitted using the `arima` function with the order function parameter set to c(p, 0, q). The fitting algorithm proceeds similarly to that for an MA process
+
+Below, data from an ARMA(1, 1) process are simulated for $\alpha = −0.6$ and $\beta = 0.5$
+```{r}
+set.seed(1)
+x <- arima.sim(n = 10000, list(ar = -0.6, ma = 0.5))
+coef(arima(x, order = c(1, 0, 1)))
+```
+
+## Exhchange Rate Series
+In our last example, a simple MA(1) model failed to provide an adequate fit to the exchange rate series. In the code below, fitted MA(1), AR(1) and ARMA(1, 1) models are compared using the AIC
+
+```{r}
+x.ma <- arima(x.ts, order = c(0, 0, 1))
+x.ar <- arima(x.ts, order = c(1, 0, 0))
+x.arma <- arima(x.ts, order = c(1, 0, 1))
+AIC(x.ma)
+AIC(x.ar)
+AIC(x.arma)
+```
+
+The ARMA(1, 1) model provides the best fit to the data, followed by the AR(1) model, with the MA(1) model providing the poorest fit. 
+
+```{r}
+x.arma
+```
+
+
+```{r}
+acf(resid(x.arma))
+```
+
+The correlogram indicates that the residuals of the fitted ARMA(1, 1) model have small autocorrelations, which is consistent with a realisation of white noise and supports the use of the model.
+
+## Electricty Production Series
+Consider the Australian electricity production series. The data exhibit a clear positive trend and a regular seasonal cycle. Furthermore, the variance increases with time, which suggests a log-transformation may be appropriate. A regression model is fitted to the logarithms of the original series in the code below.
+
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+Elec = read.csv(file = "data/elec.csv", header = T)
+Elec.ts <- ts(Elec, start = 1958, freq = 12)
+Time <- 1:length(Elec.ts)
+Imth <- cycle(Elec.ts)
+Elec.lm <- lm(log(Elec.ts) ~ Time + I(Time^2) + factor(Imth))
+acf(resid(Elec.lm))
+```
+The correlogram of the residuals appears to cycle with a period of 12 months suggesting that the monthly indicator variables are not sufficient to account for the seasonality in the series.
+
+We note that the best fitting ARMA(p, q) model can be chosen using the smallest AIC either by trying a range of combinations of p and q in the arima function or using a for loop with upper bounds on p and q – taken as 2 in the code shown below.
+
+In each step of the for loop, the AIC of the fitted model is compared with the currently stored smallest value. If the model is found to be an improvement (i.e., has a smaller AIC value), then the new value and model are stored. To start with, `best.aic` is initialised to infinity (Inf). After the loop is complete, the best model can be found in `best.order`
+
+```{r}
+best.order <- c(0, 0, 0)
+best.aic <- Inf
+for (i in 0:2){
+  for (j in 0:2){
+    fit.aic <- AIC(arima(resid(Elec.lm), 
+                         order = c(i, 0, j)))
+    if (fit.aic < best.aic) {
+      best.order <- c(i, 0, j)
+      best.arma <- arima(resid(Elec.lm), order = best.order)
+      best.aic <- fit.aic
+    }
+  }
+}
+```
+
+The AR(2) model appears to be the best fit.
+```{r}
+best.order
+```
+
+```{r}
+acf(resid(best.arma))
+```
+
+The `predict` function can be used both to forecast future values from the fitted regression model and forecast the future errors associated with the regression model using the ARMA model fitted to the residuals from the regression. These two forecasts can then be summed to give a forecasted value of the logarithm for electricity production, which would then need to be antilogged and perhaps adjusted using a bias correction factor.
+
+For a fitted ARMA model of class arima, the predict function requires just the number of time steps ahead for the desired forecast.
+
+In the code below, the electricity production for each month of the next three years is predicted.
+
+```{r}
+new.time <- seq(length(Elec.ts), length = 36)
+new.data <- data.frame(Time = new.time, Imth = rep(1:12, 3))
+predict.lm <- predict(Elec.lm, new.data)
+predict.arma <- predict(best.arma, n.ahead = 36)
+elec.pred <- ts(exp(predict.lm + predict.arma$pred), start = 1991, freq = 12)
+ts.plot(cbind(Elec.ts, elec.pred), lty = 1:2)
+```
+
+
+# Chapter 7
+
+## ARIMA Simulation
+
+An ARIMA(p, d, q) process can be fitted to data using the R function `arima` with the parameter order set to c(p, d, q).
+
+An ARIMA(p, d, q) process can be simulated in R by writing appropriate code below.
+
+```{r}
+set.seed(1)
+x <- rnorm(1000)
+w <- x
+for (i in 3:1000){
+  x[i] <- 0.5 * x[i - 1] + x[i - 1] - 0.5 *
+    x[i - 2] + w[i] + 0.3 * w[i - 1]
+}
+arima(x, order = c(1, 1, 1))
+```
+
+Writing your own code has the advantage in that it helps to ensure that you understand the model. However, an ARIMA simulation can be carried out using the inbuilt R function `arima.sim`, which has the parameters model and n to specify the model and the simulation length, respectively.
+```{r}
+x <- arima.sim(model = list(order = c(1, 1, 1), ar = 0.5, ma = 0.3), n = 1000)
+arima(x, order = c(1, 1, 1))
+```
+
+## IMA Model for Beer Production
+
+The beer data is dominated by a trend of increasing beer production over the period, so a simple integrated model IMA(1, 1) is fitted to allow for this trend and a carryover of production from the previous month.
+
+The IMA(1, 1) model is often appropriate because it represents a linear trend with white noise added. 
+
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+Beer = read.csv(file = "data/beer.csv", header = T)
+
+Beer.ts <- ts(Beer, start = 1958, freq = 12)
+Beer.ima <- arima(Beer.ts, order = c(0, 1, 1))
+Beer.ima
+```
+
+The residuals are analysed using the correlogram, which has peaks at yearly cycles and suggests that a seasonal term is required.
+
+```{r}
+acf(resid(Beer.ima))
+```
+
+From the output above we conclude the model is $x_t = x_{t-1} + w_t - 0.33w_{t-1}$. We build forecasts from this model. We can use the `predict` function in this case, shown below
+```{r}
+Beer.1991 <- predict(Beer.ima, n.ahead = 12)
+sum(Beer.1991$pred)
+```
+
+## Seasonal ARIMA Introduction
+
+In R, this approach to fitting a range of seasonal ARIMA models is straightforward, since the fitting criteria can be called by nesting functions and the ‘up arrow’ on the keyboard used to recall the last command, which can then be edited to try a new model. Any obvious terms, such as a differencing term if there is a trend, should be included and retained in the model to reduce the number of comparisons. 
+
+The model can be fitted with the `arima` function, which requires an additional parameter seasonal to specify the seasonal components. In the example below, we fit two models with first-order terms to the logarithm of the electricity production series. The first uses autoregressive terms and the second uses moving average terms. The parameter d = 1 is retained in both the models
+
+```{r}
+AIC (arima(log(Elec.ts), order = c(1,1,0),
+           seas = list(order = c(1,0,0), 12)))
+AIC (arima(log(Elec.ts), order = c(0,1,1),
+           seas = list(order = c(0,0,1), 12)))
+```
+
+It is straightforward to check a range of models by a trial-and-error approach involving just editing a command on each trial to see if an improvement in the AIC occurs. Alternatively, we could write a simple function that fits a range of ARIMA models and selects the best-fitting model. This approach works better when the conditional sum of squares method CSS is selected in the arima function, as the algorithm is more robust.
+
+```{r}
+get.best.arima <- function(x.ts, maxord = c(1,1,1,1,1,1)) {
+  best.aic <- 1e8
+  n <- length(x.ts)
+  for (p in 0:maxord[1]) for(d in 0:maxord[2]) for(q in 0:maxord[3]){
+    
+    for (P in 0:maxord[4]) for(D in 0:maxord[5]) for(Q in 0:maxord[6]){
+      fit <- arima(x.ts, order = c(p,d,q),
+                   seas = list(order = c(P,D,Q),
+                               frequency(x.ts)), method = "CSS")
+      fit.aic <- -2 * fit$loglik + (log(n) + 1) * length(fit$coef)
+      if (fit.aic < best.aic){
+        best.aic <- fit.aic
+        best.fit <- fit
+        best.model <- c(p,d,q,P,D,Q)
+      }
+    }
+  }
+  return(list(best.aic, best.fit, best.model))
+}
+best.arima.elec <- get.best.arima( log(Elec.ts),
+                                   maxord = c(2,2,2,2,2,2))
+
+best.fit.elec <- best.arima.elec[[2]]
+acf(resid(best.fit.elec))
+best.arima.elec[[3]]
+ts.plot( cbind( window(Elec.ts,start = 1981),
+                exp(predict(best.fit.elec,12)$pred) ), lty = 1:2)
+```
+
+From the code above, we see the best-fitting model using terms up to second order is ARIMA(0, 1, 1)(2, 0, 2) with seasonality 12.
+
+
+
+
+
+

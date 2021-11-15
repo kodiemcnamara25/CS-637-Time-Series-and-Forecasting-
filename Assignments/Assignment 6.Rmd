@@ -1,0 +1,40 @@
+---
+title: "Assignment 6"
+date: "November 15, 2021"
+output: html_document
+---
+#### Due Date: November 29, 2021
+
+### Instructions
+Please complete each problem below to the best of your ability. Where plain text is required, you can type directly into the .RMD file. Where code and output is required, be sure to include all code in the code chunks provided. The assignment must be submitted, via email, as both the .RMD file and the knitted file (whether .html or .pdf, whichever is best for yourself)
+
+## Problem 1
+Complete Chapter 6, Exercise 4 from the textbook.
+### Problem 1A
+```{r}
+
+```
+
+### Problem 1B
+```{r}
+
+```
+
+### Problem 1C
+```{r}
+
+```
+
+### Problem 1D
+```{r}
+
+```
+
+## Problem 2
+Complete Chapter 7, Exercise 5
+
+### Problem 2
+```{r}
+
+```
+
