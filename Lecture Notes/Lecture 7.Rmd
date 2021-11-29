@@ -1,0 +1,139 @@
+---
+title: "Lecture 7"
+author: "Kodie McNamara"
+date: "November 28, 2021"
+output: html_document
+---
+
+## White Noise
+We will start by generating an independent random sample from a normal distribution. This is a realisation of a Gaussian white noise process. If no span is specified in the spectrum function, R will use the heights of the Fourier line, spectrum spikes to construct a spectrum with no smoothing. We compare this with a span of 65.
+
+```{r}
+layout(1:2)
+set.seed(1)
+x <- rnorm(2048)
+spectrum(x, log = c("no"))
+spectrum(x, span = 65, log = c("no"))
+```
+
+The default is a logarithmic scale for the spectrum, but we have changed this by setting the log parameter to "no". The frequency axis is cycles per sampling interval. The second spectrum is much smoother as a result of the moving average of 65 adjacent spikes.
+
+## AR(1) Model
+We generate a realisation of length 1024 from an AR(1) process with $\alpha$ equal to 0.9 and compare the time series plot, correlogram, and spectrum
+
+```{r}
+set.seed(1)
+x <- rnorm(1024)
+w <- x
+for (t in 2:1024){
+  x[t]<- 0.9 * x[t-1] + w[t]
+}
+layout(1:3)
+plot(as.ts(x))
+acf(x)
+spectrum(x, span = 51, log = c("no"))
+```
+
+The plot of the time series shows the tendency for consecutive values to be relatively similar, and change is relatively slow, so we might expect the spectrum to pick up low-frequency variation. The acf quantifies the tendency for consecutive values to be relatively similar. The spectrum confirms that low-frequency variation dominates.
+
+## AR(2) Model
+Consider an AR(2) process with parameters 1 and −0.6. This can be interpreted as a second-order difference equation describing the motion of a lightly damped single mode system.
+
+
+```{r}
+set.seed(1)
+x <- rnorm(1024)
+w <- x
+for (t in 3:1024){
+  x[t] <- x[t-1] - 0.6 * x[t-2] + w[t]
+}
+layout (1:3)
+plot (as.ts(x))
+acf (x)
+spectrum (x, span = 51, log = c("no"))
+```
+
+
+## Wave Tank Data
+The data in the file wave.dat are the surface height, relative to still water level, of water at the centre of a wave tank sampled over 39.6 seconds at a rate of 10 samples per second. The aim of the analysis is to check whether the spectrum is a realistic emulation of typical sea spectra
+
+```{r}
+# Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
+# Your directory must be set to tell R where to find the data file for Maine monthly unemployment
+
+#setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
+waveht = read.csv(file = "data/wave.csv", header = T)
+
+layout (1:3)
+plot (as.ts(waveht))
+acf (waveht)
+spectrum (waveht, span = 20)
+```
+
+
+## VAR Model US Economic Time Series
+
+A quarterly US economic series (1954–1987) is available within the `tseries` library. A best-fitting VAR model is fitted to the (mean-adjusted) gross national product (GNP) and real money (M1) in the following example.1 Ordinary least squares is used to fit the model to the mean adjusted series – with dmean set to TRUE and intercept set to FALSE since the latter parameter will not be required.
+
+```{r}
+#install.packages("tseries")
+library(tseries)
+data(USeconomic)
+US.ar <- ar(cbind(GNP, M1), method="ols", dmean=T, intercept=F)
+US.ar$ar
+```
+
+
+From the code above, we see that the best-fitting VAR model is of order 3. The correlogram of the residual series indicates that the residuals are approximately bivariate white noise.
+
+
+In the `vars` package (Pfaff, 2008), available on the R website, the VAR function can be used to estimate standard errors of fitted VAR parameters. Hence, this package was downloaded and installed and is used to extract the standard errors in the code below. Those estimates that are not significantly different from zero are removed before making a prediction for the following year. The vars package can also allow for any trends in the data, so we also include a trend term for the GNP series since US GNP will tend to increase with time due to an expanding population and increased productivity
+
+```{r}
+#install.packages("vars")
+library(vars)
+US.var <- VAR(cbind(GNP, M1), p = 3, type = "trend")
+coef(US.var)
+```
+
+
+```{r}
+US.var <- VAR(cbind(GNP, M1), p = 2, type = "trend")
+coef(US.var)
+```
+
+
+```{r}
+acf(resid(US.var)[, 1])
+acf(resid(US.var)[, 2])
+```
+
+
+Below we give the predicted values for the next year of the series, which are then added to a time series plot for each variable
+```{r}
+US.pred <- predict(US.var, n.ahead = 4)
+US.pred
+```
+
+
+```{r}
+GNP.pred <- ts(US.pred$fcst$GNP[, 1], st = 1988, fr = 4)
+M1.pred <- ts(US.pred$fcst$M1[, 1], st = 1988, fr = 4)
+ts.plot(cbind(window(GNP, start = 1981), GNP.pred), lty = 1:2)
+ts.plot(cbind(window(M1, start = 1981), M1.pred), lty = 1:2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

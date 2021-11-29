@@ -77,9 +77,6 @@ x.ma <- arima(x, order = c(0, 0, 3))
 x.ma
 ```
 
-
-
-
 Looking at the parameter estimates (coefficients in the output below), it can be seen that the 95% confidence intervals (approximated by coeff. +- 2 s.e. of coeff.) contain the underlying parameter values (0.8, 0.6, and 0.4) that were used in the simulations.
 
 Furthermore, also as expected, the intercept is not significantly different from its underlying parameter value of zero.
@@ -91,7 +88,7 @@ In the code below, an MA(1) model is fitted to the exchange rate series
 # Your directory must be set to tell R where to find the data file for Maine monthly unemployment
 
 #setwd("C:/Users/kmac4/Documents/St. Elizabeth University/CS-637-Time-Series-and-Forecasting-/Lecture Notes")
-Pounds_NZ = read.csv(file = "data/Pounds_NZ.csv", header = F)
+Pounds_NZ = read.csv(file = "data/Pounds_NZ.csv", header = T)
 x.ts <- ts(Pounds_NZ, st = 1991, fr = 4)
 x.ma <- arima(x.ts, order = c(0, 0, 1))
 x.ma
@@ -112,7 +109,7 @@ Below, data from an ARMA(1, 1) process are simulated for $\alpha = −0.6$ and $
 ```{r}
 set.seed(1)
 x <- arima.sim(n = 10000, list(ar = -0.6, ma = 0.5))
-coef(arima(x, order = c(1, 0, 1)))
+arima(x, order = c(1, 0, 1))
 ```
 
 ## Exhchange Rate Series
