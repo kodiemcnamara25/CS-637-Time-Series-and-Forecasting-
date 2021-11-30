@@ -55,7 +55,7 @@ spectrum (x, span = 51, log = c("no"))
 
 
 ## Wave Tank Data
-The data in the file wave.dat are the surface height, relative to still water level, of water at the centre of a wave tank sampled over 39.6 seconds at a rate of 10 samples per second. The aim of the analysis is to check whether the spectrum is a realistic emulation of typical sea spectra
+The data in the file wave.csv are the surface height, relative to still water level, of water at the centre of a wave tank sampled over 39.6 seconds at a rate of 10 samples per second. The aim of the analysis is to check whether the spectrum is a realistic emulation of typical sea spectra
 
 ```{r}
 # Set your working directory below if it is not already set to the current 'Lecture Notes' directory.
@@ -85,6 +85,11 @@ US.ar$ar
 
 
 From the code above, we see that the best-fitting VAR model is of order 3. The correlogram of the residual series indicates that the residuals are approximately bivariate white noise.
+
+
+```{r}
+acf(US.ar$resid[!is.na(US.ar$resid)])
+```
 
 
 In the `vars` package (Pfaff, 2008), available on the R website, the VAR function can be used to estimate standard errors of fitted VAR parameters. Hence, this package was downloaded and installed and is used to extract the standard errors in the code below. Those estimates that are not significantly different from zero are removed before making a prediction for the following year. The vars package can also allow for any trends in the data, so we also include a trend term for the GNP series since US GNP will tend to increase with time due to an expanding population and increased productivity
